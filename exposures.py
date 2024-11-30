@@ -7,30 +7,30 @@ import plotly.express as px
 # Set page to wide mode at the very top of the file
 st.set_page_config(layout="wide")
 
-# Add this near your title and Twitter link
+# Title row with Twitter link and feedback
 col_title, col_social, col_feedback = st.columns([5, 1, 1])
 with col_title:
     st.title("Underdog Draft Exposures Dashboard")
 with col_social:
     st.markdown("""
         <a href="https://x.com/loudogvideo" target="_blank">
-            <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="50">
+            <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="40">
         </a>
     """, unsafe_allow_html=True)
 with col_feedback:
     st.markdown("""
-        <a href="https://github.com/[your-username]/[your-repo]/issues/new/choose" target="_blank">
+        <a href="https://github.com/louissherman/UDexposures/issues/new/choose" target="_blank">
             Submit Feedback
         </a>
     """, unsafe_allow_html=True)
-    
+
 # Define sport-specific configurations
 NFL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
 NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
 
 # File upload with tooltip
 st.markdown("""
-    Upload CSV 
+    Upload your draft data CSV 
     <span title="You can email an exposure csv to yourself from the Completed Drafts page on Underdog">❔</span>
     """, 
     unsafe_allow_html=True
@@ -86,15 +86,12 @@ if uploaded_file is not None:
             POSITIONS = NBA_POSITIONS
             
             def analyze_team_composition(positions):
-                # Initialize position counts
                 position_counts = {pos: 0 for pos in POSITIONS}
-                # Add the counts from this team's positions
                 for pos, count in positions.items():
                     position_counts[pos] += count
                 return position_counts
             
             def analyze_stacks(group):
-                # Count players per team
                 team_counts = group['Team'].value_counts()
                 
                 if len(team_counts) == 6:
@@ -119,8 +116,7 @@ if uploaded_file is not None:
         else:
             st.error("Error: Invalid position data in CSV")
             st.stop()
-            
-        # Continue with the rest of the code...
+
         # Combine First Name and Last Name into a single Player column
         df['Player'] = df['First Name'] + ' ' + df['Last Name']
         
@@ -129,17 +125,17 @@ if uploaded_file is not None:
         valid_drafts = draft_counts[draft_counts % 6 == 0].index
         df = df[df['Draft Pool'].isin(valid_drafts)]
         
-        # Add player search box with normalized names
+        # Start with the original dataframe
+        base_df = df.copy()
+
+        # Add player search box
         player_options = sorted(df['Player'].str.strip().unique())
         player_search = st.multiselect(
             "Search Players",
             options=player_options,
             placeholder="Search for players..."
         )
-        
-        # Start with the original dataframe
-        base_df = df.copy()
-        
+
         # Apply player filters if any players are selected
         if player_search:
             # Create a mask that checks if each draft contains all selected players
@@ -152,13 +148,12 @@ if uploaded_file is not None:
                     draft_mask &= df['Draft Entry'].isin(player_drafts)
             
             if draft_mask is not None:
-                # Filter the base dataframe
                 base_df = df[draft_mask]
             else:
                 st.warning("No drafts found containing all selected players")
                 st.stop()
-        
-        # Initialize filtered_df with the base_df (which now includes player search filter)
+
+        # Initialize filtered_df with the base_df
         filtered_df = base_df.copy()
         
         # Create filters
@@ -212,8 +207,10 @@ if uploaded_file is not None:
             if selected_draft != 'All':
                 filtered_df = filtered_df[filtered_df['Draft Entry'] == selected_draft]
         
-        # Calculate total number of drafts based on unique Draft Entries
+        # Calculate total number of drafts and percentage
         total_filtered_drafts = len(filtered_df['Draft Entry'].unique())
+        total_all_drafts = len(df['Draft Entry'].unique())
+        percentage = round((total_filtered_drafts / total_all_drafts * 100), 1)
         
         # Calculate Draft Position for each entry
         draft_positions = (
@@ -229,7 +226,10 @@ if uploaded_file is not None:
         # Display metrics
         col_metrics1, col_metrics2 = st.columns(2)
         with col_metrics1:
-            st.metric("Total Number of Drafts", total_filtered_drafts)
+            st.metric(
+                "Total Number of Drafts",
+                f"{total_filtered_drafts} / {total_all_drafts} ({percentage}%)"
+            )
         with col_metrics2:
             st.metric("Average Draft Position (first pick)", avg_draft_position)
         
@@ -284,29 +284,24 @@ if uploaded_file is not None:
             
             with col_pos:
                 if selected_position == "All":
-                    # Show position distribution using filtered_df
                     team_comps = filtered_df.groupby('Position').size()
                     position_percentages = (team_comps / len(filtered_df) * 100).round(1)
                     
-                    # Display as pie chart
                     fig_comp = px.pie(
                         values=position_percentages.values,
                         names=position_percentages.index,
                         title="Position Distribution"
                     )
                 else:
-                    # Show team distribution using filtered_df
                     team_comps = filtered_df.groupby('Team').size()
                     team_percentages = (team_comps / len(filtered_df) * 100).round(1)
                     
-                    # Display as pie chart
                     fig_comp = px.pie(
                         values=team_percentages.values,
                         names=team_percentages.index,
                         title=f"{selected_position} Team Distribution"
                     )
                 
-                # Update title size and legend position
                 fig_comp.update_layout(
                     title=dict(
                         text="Position Distribution" if selected_position == "All" else f"{selected_position} Team Distribution",
@@ -367,9 +362,9 @@ if uploaded_file is not None:
             # Get all draft entries from filtered_df
             filtered_draft_entries = filtered_df['Draft Entry'].unique()
             
-            # Use original df to analyze stacks, but only for the filtered draft entries
+            # Use filtered_df to analyze stacks
             stack_analysis = (
-                df[df['Draft Entry'].isin(filtered_draft_entries)]
+                filtered_df
                 .groupby('Draft Entry')
                 .apply(analyze_stacks)
             )
@@ -377,13 +372,11 @@ if uploaded_file is not None:
             stack_counts = stack_analysis.value_counts()
             stack_percentages = (stack_counts / len(stack_analysis) * 100).round(1)
             
-            # Display as pie chart
             fig_stack = px.pie(
                 values=stack_percentages.values,
                 names=stack_percentages.index,
                 title="Stack Distribution"
             )
-            # Update title size and legend position
             fig_stack.update_layout(
                 title=dict(
                     text="Stack Distribution",
@@ -398,9 +391,6 @@ if uploaded_file is not None:
                 )
             )
             st.plotly_chart(fig_stack, use_container_width=True)
-        
-    except Exception as e:
-        st.error(f"Error processing file: {str(e)}")
         
     except Exception as e:
         st.error(f"Error processing file: {str(e)}")
