@@ -7,8 +7,8 @@ import plotly.express as px
 # Set page to wide mode at the very top of the file
 st.set_page_config(layout="wide")
 
-# Title row with Twitter link
-col_title, col_social = st.columns([6, 1])
+# Add this near your title and Twitter link
+col_title, col_social, col_feedback = st.columns([5, 1, 1])
 with col_title:
     st.title("Underdog Draft Exposures Dashboard")
 with col_social:
@@ -17,7 +17,13 @@ with col_social:
             <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="50">
         </a>
     """, unsafe_allow_html=True)
-
+with col_feedback:
+    st.markdown("""
+        <a href="https://github.com/[your-username]/[your-repo]/issues/new/choose" target="_blank">
+            Submit Feedback
+        </a>
+    """, unsafe_allow_html=True)
+    
 # Define sport-specific configurations
 NFL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
 NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
