@@ -7,14 +7,29 @@ import plotly.express as px
 # Set page to wide mode at the very top of the file
 st.set_page_config(layout="wide")
 
-st.title("Underdog Draft Exposures Dashboard")
+# Title row with Twitter link
+col_title, col_social = st.columns([6, 1])
+with col_title:
+    st.title("Underdog Draft Exposures Dashboard")
+with col_social:
+    st.markdown("""
+        <a href="https://x.com/loudogvideo" target="_blank">
+            <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="50">
+        </a>
+    """, unsafe_allow_html=True)
 
 # Define sport-specific configurations
 NFL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
 NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
 
-# File upload
-uploaded_file = st.file_uploader("Upload your draft data CSV", type=['csv'])
+# File upload with tooltip
+st.markdown("""
+    Upload CSV 
+    <span title="You can email an exposure csv to yourself from the Completed Drafts page on Underdog">❔</span>
+    """, 
+    unsafe_allow_html=True
+)
+uploaded_file = st.file_uploader("", type=['csv'])
 
 if uploaded_file is not None:
     try:
@@ -108,36 +123,43 @@ if uploaded_file is not None:
         valid_drafts = draft_counts[draft_counts % 6 == 0].index
         df = df[df['Draft Pool'].isin(valid_drafts)]
         
-        # Initialize filtered_df with the original dataframe
-        filtered_df = df.copy()
-        
-        # Add player search box
+        # Add player search box with normalized names
+        player_options = sorted(df['Player'].str.strip().unique())
         player_search = st.multiselect(
             "Search Players",
-            options=sorted(df['Player'].unique()),
+            options=player_options,
             placeholder="Search for players..."
         )
+        
+        # Start with the original dataframe
+        base_df = df.copy()
         
         # Apply player filters if any players are selected
         if player_search:
             # Create a mask that checks if each draft contains all selected players
             draft_mask = None
             for player in player_search:
-                player_drafts = set(df[df['Player'] == player]['Draft Entry'])
+                player_drafts = set(df[df['Player'].str.strip() == player.strip()]['Draft Entry'])
                 if draft_mask is None:
                     draft_mask = df['Draft Entry'].isin(player_drafts)
                 else:
                     draft_mask &= df['Draft Entry'].isin(player_drafts)
             
-            # Filter to only drafts containing all selected players
-            filtered_df = filtered_df[draft_mask]
-
+            if draft_mask is not None:
+                # Filter the base dataframe
+                base_df = df[draft_mask]
+            else:
+                st.warning("No drafts found containing all selected players")
+                st.stop()
+        
+        # Initialize filtered_df with the base_df (which now includes player search filter)
+        filtered_df = base_df.copy()
+        
         # Create filters
         col1, col2, col3, col4 = st.columns(4)
         
-        with col3:  # Moving Draft Pool Title to first in logical order
-            # Get all available draft titles
-            available_draft_titles = sorted(df['Draft Pool Title'].unique())
+        with col3:
+            available_draft_titles = sorted(base_df['Draft Pool Title'].unique())
             draft_title_options = ['All'] + available_draft_titles
             selected_draft_title = st.selectbox(
                 'Filter by Draft Pool Title',
@@ -145,15 +167,11 @@ if uploaded_file is not None:
                 index=0
             )
             
-            # Create initial filter based on draft title
             if selected_draft_title != 'All':
-                title_filtered_df = df[df['Draft Pool Title'] == selected_draft_title]
-            else:
-                title_filtered_df = df
+                filtered_df = filtered_df[filtered_df['Draft Pool Title'] == selected_draft_title]
         
         with col1:
-            # Get positions based on draft title filter
-            available_positions = sorted(title_filtered_df['Position'].unique())
+            available_positions = sorted(filtered_df['Position'].unique())
             position_options = ["All"] + available_positions
             selected_position = st.selectbox(
                 'Filter by Position',
@@ -161,15 +179,11 @@ if uploaded_file is not None:
                 index=0
             )
             
-            # Apply position filter
             if selected_position != "All":
-                position_filtered_df = title_filtered_df[title_filtered_df['Position'] == selected_position]
-            else:
-                position_filtered_df = title_filtered_df
+                filtered_df = filtered_df[filtered_df['Position'] == selected_position]
         
         with col2:
-            # Get teams based on previous filters
-            available_teams = sorted(position_filtered_df['Team'].unique().tolist())
+            available_teams = sorted(filtered_df['Team'].unique())
             team_options = ["All"] + available_teams
             selected_team = st.selectbox(
                 'Filter by Team',
@@ -177,24 +191,20 @@ if uploaded_file is not None:
                 index=0
             )
             
-            # Apply team filter
             if selected_team != "All":
-                team_filtered_df = position_filtered_df[position_filtered_df['Team'] == selected_team]
-            else:
-                team_filtered_df = position_filtered_df
-            
+                filtered_df = filtered_df[filtered_df['Team'] == selected_team]
+        
         with col4:
-            # Get draft entries based on previous filters
-            available_drafts = sorted(team_filtered_df['Draft Entry'].unique())
+            available_drafts = sorted(filtered_df['Draft Entry'].unique())
             draft_options = ['All'] + list(available_drafts)
             selected_draft = st.selectbox(
                 'Filter by Draft',
                 options=draft_options,
                 index=0
             )
-        
-        # Final filtered dataframe based on all selections
-        filtered_df = team_filtered_df if selected_draft == 'All' else team_filtered_df[team_filtered_df['Draft Entry'] == selected_draft]
+            
+            if selected_draft != 'All':
+                filtered_df = filtered_df[filtered_df['Draft Entry'] == selected_draft]
         
         # Calculate total number of drafts based on unique Draft Entries
         total_filtered_drafts = len(filtered_df['Draft Entry'].unique())
@@ -217,15 +227,14 @@ if uploaded_file is not None:
         with col_metrics2:
             st.metric("Average Draft Position (first pick)", avg_draft_position)
         
-        # Create three columns for table and visualizations with less spacing
+        # Create three columns for table and visualizations
         col_table, col_comp, col_breakdown = st.columns([1, 1, 1], gap="small")
         
         with col_table:
             # Calculate exposures
             if selected_draft != 'All':
-                # Show only players from the selected draft
                 exposures = (
-                    df[df['Draft Entry'] == selected_draft]
+                    filtered_df
                     .assign(
                         **{
                             'Total Drafts': 1,
@@ -235,68 +244,28 @@ if uploaded_file is not None:
                     )
                     [['Player', 'Position', 'Team', 'Total Drafts', 'Total Entry Fees', 'Exposure %']]
                 )
-            elif player_search:
-                # Get all draft entries containing the searched players
-                relevant_drafts = filtered_df['Draft Entry'].unique()
-                
-                # Get all players from those drafts
-                teammate_exposures = (
-                    df[df['Draft Entry'].isin(relevant_drafts)]
-                    .groupby('Player')
-                    .agg({
-                        'Draft Pool': 'count',
-                        'Position': 'first',
-                        'Team': 'first',
-                        'Draft Pool Entry Fee': 'sum'
-                    })
-                    .reset_index()
-                )
-                
-                # Calculate exposure percentages based on filtered drafts
-                teammate_exposures['Exposure %'] = (teammate_exposures['Draft Pool'] / len(relevant_drafts) * 100).round(1)
-                teammate_exposures = teammate_exposures.sort_values('Exposure %', ascending=False)
-                
-                # Remove the searched players from the results if you want to show only teammates
-                teammate_exposures = teammate_exposures[~teammate_exposures['Player'].isin(set(player_search))]
-                
-                # Apply team filter if not "All"
-                if selected_team != "All":
-                    teammate_exposures = teammate_exposures[teammate_exposures['Team'] == selected_team]
-                
-                # Rename columns
-                teammate_exposures = teammate_exposures.rename(columns={
-                    'Draft Pool': 'Total Drafts',
-                    'Draft Pool Entry Fee': 'Total Entry Fees'
-                })
-                
-                exposures = teammate_exposures
             else:
-                # Original exposure calculation for when no players are searched
                 exposures = (
-                    filtered_df.groupby('Player')
+                    filtered_df.groupby(['Player', 'Position', 'Team'])
                     .agg({
-                        'Draft Pool': 'count',
-                        'Position': 'first',
-                        'Team': 'first',
+                        'Draft Entry': 'count',
                         'Draft Pool Entry Fee': 'sum'
                     })
                     .reset_index()
+                    .rename(columns={
+                        'Draft Entry': 'Total Drafts',
+                        'Draft Pool Entry Fee': 'Total Entry Fees'
+                    })
                 )
                 
                 # Calculate exposure percentages
-                exposures['Exposure %'] = (exposures['Draft Pool'] / total_filtered_drafts * 100).round(1)
+                exposures['Exposure %'] = (exposures['Total Drafts'] / total_filtered_drafts * 100).round(1)
                 exposures = exposures.sort_values('Exposure %', ascending=False)
-                
-                # Rename columns
-                exposures = exposures.rename(columns={
-                    'Draft Pool': 'Total Drafts',
-                    'Draft Pool Entry Fee': 'Total Entry Fees'
-                })
             
             # Display exposures table
             st.subheader("Player Exposures")
             st.dataframe(
-                exposures[['Player', 'Position', 'Team', 'Total Drafts', 'Total Entry Fees', 'Exposure %']],
+                exposures,
                 hide_index=True,
                 column_config={
                     'Exposure %': st.column_config.NumberColumn(format="%.1f%%"),
@@ -309,7 +278,7 @@ if uploaded_file is not None:
             
             with col_pos:
                 if selected_position == "All":
-                    # Show position distribution
+                    # Show position distribution using filtered_df
                     team_comps = filtered_df.groupby('Position').size()
                     position_percentages = (team_comps / len(filtered_df) * 100).round(1)
                     
@@ -320,7 +289,7 @@ if uploaded_file is not None:
                         title="Position Distribution"
                     )
                 else:
-                    # Show team distribution for selected position
+                    # Show team distribution using filtered_df
                     team_comps = filtered_df.groupby('Team').size()
                     team_percentages = (team_comps / len(filtered_df) * 100).round(1)
                     
@@ -348,41 +317,45 @@ if uploaded_file is not None:
                 st.plotly_chart(fig_comp, use_container_width=True)
             
             with col_time:
-                
-                # Convert Picked At to datetime and convert to Eastern Time
-                df['Picked At'] = pd.to_datetime(df['Picked At'])
-                
-                # Convert to Eastern Time (using tz_convert since data is already tz-aware)
-                df['Picked At'] = df['Picked At'].dt.tz_convert('US/Eastern')
-                
-                df['Day'] = df['Picked At'].dt.day_name()
-                df['AM_PM'] = df['Picked At'].dt.strftime('%p')
-                
-                # Combine day and AM/PM
-                df['Draft Time'] = df['Day'] + ' ' + df['AM_PM']
-                time_dist = df['Draft Time'].value_counts().sort_index()
-                
-                # Create pie chart
-                fig_time = px.pie(
-                    values=time_dist.values,
-                    names=time_dist.index,
+                try:
+                    # Create time distribution using filtered_df
+                    filtered_df['Picked At'] = pd.to_datetime(filtered_df['Picked At'], utc=True)
                     
-                )
-                # Update title size and legend position
-                fig_time.update_layout(
-                    title=dict(
-                        text="Time Distribution (ET)",
-                        font=dict(size=22)
-                    ),
-                    legend=dict(
-                        orientation="h",
-                        yanchor="bottom",
-                        y=-0.5,
-                        xanchor="center",
-                        x=0.5
+                    # Extract day and hour information
+                    filtered_df['Day'] = filtered_df['Picked At'].dt.day_name()
+                    filtered_df['Hour'] = filtered_df['Picked At'].dt.hour
+                    
+                    # Define AM/PM
+                    filtered_df['AM_PM'] = filtered_df['Hour'].apply(lambda x: 'AM' if x < 12 else 'PM')
+                    
+                    # Combine day and AM/PM for filtered_df
+                    filtered_df['Draft Time'] = filtered_df['Day'] + ' ' + filtered_df['AM_PM']
+                    
+                    # Get distribution for filtered drafts only
+                    time_dist = filtered_df['Draft Time'].value_counts().sort_index()
+                    
+                    # Create pie chart
+                    fig_time = px.pie(
+                        values=time_dist.values,
+                        names=time_dist.index,
                     )
-                )
-                st.plotly_chart(fig_time, use_container_width=True)
+                    # Update title size and legend position
+                    fig_time.update_layout(
+                        title=dict(
+                            text="Time Distribution (UTC)",
+                            font=dict(size=24)
+                        ),
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=-0.5,
+                            xanchor="center",
+                            x=0.5
+                        )
+                    )
+                    st.plotly_chart(fig_time, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Error in time distribution: {str(e)}")
         
         with col_breakdown:
             # Get all draft entries from filtered_df
