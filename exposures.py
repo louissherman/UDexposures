@@ -30,7 +30,7 @@ NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
 
 # File upload with tooltip
 st.markdown("""
-    Upload your draft data CSV 
+    Upload CSV 
     <span title="You can email an exposure csv to yourself from the Completed Drafts page on Underdog">❔</span>
     """, 
     unsafe_allow_html=True
