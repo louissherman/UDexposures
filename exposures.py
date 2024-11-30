@@ -10,16 +10,23 @@ st.set_page_config(layout="wide")
 # Title row with Twitter link and feedback
 col_title, col_social, col_feedback = st.columns([5, 1, 1])
 with col_title:
-    st.title("Underdog Draft Exposures Dashboard")
+    st.markdown("""
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <h1>Underdog Daily Draft Exposures Dashboard</h1>
+            <img src="https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f3c8.svg" width="40">
+            <img src="https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f3c0.svg" width="40">
+            <img src="https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f3d2.svg" width="40">
+        </div>
+        """, unsafe_allow_html=True)
 with col_social:
     st.markdown("""
         <a href="https://x.com/loudogvideo" target="_blank">
-            <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="40">
+            <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="30">
         </a>
     """, unsafe_allow_html=True)
 with col_feedback:
     st.markdown("""
-        <a href="https://github.com/louissherman/UDexposures/issues/new/choose" target="_blank">
+        <a href="https://github.com/louisssherman/UDexposures/issues/new/choose" target="_blank">
             Submit Feedback
         </a>
     """, unsafe_allow_html=True)
@@ -27,6 +34,7 @@ with col_feedback:
 # Define sport-specific configurations
 NFL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
 NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
+NHL_POSITIONS = ['C', 'LW', 'RW', 'D', 'G']
 
 # File upload with tooltip
 st.markdown("""
@@ -113,6 +121,51 @@ if uploaded_file is not None:
                         return '2-1-1-1-1'
                 else:
                     return 'Other'
+        elif file_positions.issubset(set(NHL_POSITIONS)):
+            sport = "NHL"
+            POSITIONS = NHL_POSITIONS
+            
+            def analyze_team_composition(positions):
+                position_counts = {pos: 0 for pos in POSITIONS}
+                for pos, count in positions.items():
+                    position_counts[pos] += count
+                return position_counts
+            
+            def analyze_stacks(group):
+                # Convert LW and RW to just W for stack analysis
+                group['Position'] = group['Position'].replace({'LW': 'W', 'RW': 'W'})
+                
+                # Get positions by team
+                team_positions = group.groupby('Team')['Position'].agg(list)
+                
+                # Analyze each team's stack
+                team_stacks = []
+                for team, positions in team_positions.items():
+                    if 'G' in positions:  # Skip goalies for stack analysis
+                        positions.remove('G')
+                    
+                    pos_count = {
+                        'C': positions.count('C'),
+                        'W': positions.count('W'),
+                        'D': positions.count('D')
+                    }
+                    
+                    # Determine stack type
+                    if pos_count['C'] >= 1 and pos_count['W'] >= 1 and pos_count['D'] == 0:
+                        team_stacks.append('C-W')
+                    elif pos_count['C'] >= 1 and pos_count['W'] >= 1 and pos_count['D'] >= 1:
+                        team_stacks.append('C-W-D')
+                    elif pos_count['C'] >= 1 and pos_count['D'] >= 1 and pos_count['W'] == 0:
+                        team_stacks.append('C-D')
+                    elif pos_count['C'] == 0 and pos_count['W'] >= 1 and pos_count['D'] >= 1:
+                        team_stacks.append('W-D')
+                    elif pos_count['C'] == 0 and pos_count['W'] >= 2 and pos_count['D'] >= 1:
+                        team_stacks.append('W-W-D')
+                
+                # Return the most significant stack type
+                if team_stacks:
+                    return max(team_stacks, key=len)  # Return the longest stack type
+                return 'No Stack'
         else:
             st.error("Error: Invalid position data in CSV")
             st.stop()
@@ -344,7 +397,7 @@ if uploaded_file is not None:
                     # Update title size and legend position
                     fig_time.update_layout(
                         title=dict(
-                            text="Time Distribution (ET)",
+                            text="Time Distribution (UTC)",
                             font=dict(size=24)
                         ),
                         legend=dict(
