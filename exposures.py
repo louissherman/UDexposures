@@ -422,3 +422,6 @@ if uploaded_file is not None:
         
     except Exception as e:
         st.error(f"Error processing file: {str(e)}")
+        
+    except Exception as e:
+        st.error(f"Error processing file: {str(e)}")
