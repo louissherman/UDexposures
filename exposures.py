@@ -319,8 +319,9 @@ if uploaded_file is not None:
             
             with col_time:
                 try:
-                    # Create time distribution using filtered_df
+                    # Convert to datetime and set to Eastern Time
                     filtered_df['Picked At'] = pd.to_datetime(filtered_df['Picked At'], utc=True)
+                    filtered_df['Picked At'] = filtered_df['Picked At'].dt.tz_convert('US/Eastern')
                     
                     # Extract day and hour information
                     filtered_df['Day'] = filtered_df['Picked At'].dt.day_name()
@@ -343,7 +344,7 @@ if uploaded_file is not None:
                     # Update title size and legend position
                     fig_time.update_layout(
                         title=dict(
-                            text="Time Distribution (UTC)",
+                            text="Time Distribution (ET)",
                             font=dict(size=24)
                         ),
                         legend=dict(
