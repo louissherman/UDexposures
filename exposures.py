@@ -18,12 +18,6 @@ with col_title:
             <img src="https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f3d2.svg" width="40">
         </div>
         """, unsafe_allow_html=True)
-with col_social:
-    st.markdown("""
-        <a href="https://x.com/loudogvideo" target="_blank">
-            <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="30">
-        </a>
-    """, unsafe_allow_html=True)
 with col_feedback:
     st.markdown("""
         <a href="https://github.com/louisssherman/UDexposures/issues/new/choose" target="_blank">
@@ -331,73 +325,70 @@ if uploaded_file is not None:
                     'Total Entry Fees': st.column_config.NumberColumn(format="%.0f")
                 }
             )
-        
         with col_comp:
-            col_pos, col_time = st.columns(2)
-            
-            with col_pos:
-                if selected_position == "All":
-                    team_comps = filtered_df.groupby('Position').size()
-                    position_percentages = (team_comps / len(filtered_df) * 100).round(1)
-                    
-                    fig_comp = px.pie(
-                        values=position_percentages.values,
-                        names=position_percentages.index,
-                        title="Position Distribution"
-                    )
-                else:
-                    team_comps = filtered_df.groupby('Team').size()
-                    team_percentages = (team_comps / len(filtered_df) * 100).round(1)
-                    
-                    fig_comp = px.pie(
-                        values=team_percentages.values,
-                        names=team_percentages.index,
-                        title=f"{selected_position} Team Distribution"
-                    )
+            if sport == "NFL":
+                # Calculate draft compositions
+                draft_compositions = filtered_df.groupby('Draft Entry')['Position'].agg(lambda x: x.value_counts().to_dict()).reset_index()
                 
-                fig_comp.update_layout(
-                    title=dict(
-                        text="Position Distribution" if selected_position == "All" else f"{selected_position} Team Distribution",
-                        font=dict(size=24)
-                    ),
-                    legend=dict(
-                        orientation="h",
-                        yanchor="bottom",
-                        y=-0.5,
-                        xanchor="center",
-                        x=0.5
-                    )
+                # Count drafts with specific configurations
+                position_counts = draft_compositions['Position'].apply(lambda x: {
+                    'RB': x.get('RB', 0),
+                    'WR': x.get('WR', 0),
+                    'TE': x.get('TE', 0)
+                })
+                
+                # Create a DataFrame from the position counts
+                position_df = pd.DataFrame(position_counts.tolist())
+                
+                # Count drafts with the specified configurations
+                drafts_with_2_rb = (position_df['RB'] == 2).sum()
+                drafts_with_3_wr = (position_df['WR'] >= 3).sum()  # Check for at least 3 WRs
+                drafts_with_2_te = (position_df['TE'] == 2).sum()
+                
+                # Create a summary for the pie chart
+                distribution_summary = {
+                    "2 RB": drafts_with_2_rb,
+                    "3 WR": drafts_with_3_wr,
+                    "2 TE": drafts_with_2_te
+                }
+                
+                # Create a pie chart
+                fig = px.pie(
+                    names=distribution_summary.keys(),
+                    values=distribution_summary.values(),
+                    title="NFL Draft Position Distribution",
+                    color_discrete_sequence=px.colors.sequential.RdBu
                 )
-                st.plotly_chart(fig_comp, use_container_width=True)
-            
-            with col_time:
-                try:
-                    # Convert to datetime and set to Eastern Time
-                    filtered_df['Picked At'] = pd.to_datetime(filtered_df['Picked At'], utc=True)
-                    filtered_df['Picked At'] = filtered_df['Picked At'].dt.tz_convert('US/Eastern')
+                
+                # Display the pie chart
+                st.plotly_chart(fig)
+
+            else:
+                col_pos, col_time = st.columns(2)
+                
+                with col_pos:
+                    if selected_position == "All":
+                        team_comps = filtered_df.groupby('Position').size()
+                        position_percentages = (team_comps / len(filtered_df) * 100).round(1)
+                        
+                        fig_comp = px.pie(
+                            values=position_percentages.values,
+                            names=position_percentages.index,
+                            title="Position Distribution"
+                        )
+                    else:
+                        team_comps = filtered_df.groupby('Team').size()
+                        team_percentages = (team_comps / len(filtered_df) * 100).round(1)
+                        
+                        fig_comp = px.pie(
+                            values=team_percentages.values,
+                            names=team_percentages.index,
+                            title=f"{selected_position} Team Distribution"
+                        )
                     
-                    # Extract day and hour information
-                    filtered_df['Day'] = filtered_df['Picked At'].dt.day_name()
-                    filtered_df['Hour'] = filtered_df['Picked At'].dt.hour
-                    
-                    # Define AM/PM
-                    filtered_df['AM_PM'] = filtered_df['Hour'].apply(lambda x: 'AM' if x < 12 else 'PM')
-                    
-                    # Combine day and AM/PM for filtered_df
-                    filtered_df['Draft Time'] = filtered_df['Day'] + ' ' + filtered_df['AM_PM']
-                    
-                    # Get distribution for filtered drafts only
-                    time_dist = filtered_df['Draft Time'].value_counts().sort_index()
-                    
-                    # Create pie chart
-                    fig_time = px.pie(
-                        values=time_dist.values,
-                        names=time_dist.index,
-                    )
-                    # Update title size and legend position
-                    fig_time.update_layout(
+                    fig_comp.update_layout(
                         title=dict(
-                            text="Time Distribution (UTC)",
+                            text="Position Distribution" if selected_position == "All" else f"{selected_position} Team Distribution",
                             font=dict(size=24)
                         ),
                         legend=dict(
@@ -408,43 +399,95 @@ if uploaded_file is not None:
                             x=0.5
                         )
                     )
-                    st.plotly_chart(fig_time, use_container_width=True)
-                except Exception as e:
-                    st.error(f"Error in time distribution: {str(e)}")
-        
-        with col_breakdown:
-            # Get all draft entries from filtered_df
-            filtered_draft_entries = filtered_df['Draft Entry'].unique()
+                    st.plotly_chart(fig_comp, use_container_width=True)
+                
+                with col_time:
+                    try:
+                        # Convert to datetime and set to Eastern Time
+                        filtered_df['Picked At'] = pd.to_datetime(filtered_df['Picked At'], utc=True)
+                        filtered_df['Picked At'] = filtered_df['Picked At'].dt.tz_convert('US/Eastern')
+                        
+                        # Extract day and hour information
+                        filtered_df['Day'] = filtered_df['Picked At'].dt.day_name()
+                        filtered_df['Hour'] = filtered_df['Picked At'].dt.hour
+                        
+                        # Define AM/PM
+                        filtered_df['AM_PM'] = filtered_df['Hour'].apply(lambda x: 'AM' if x < 12 else 'PM')
+                        
+                        # Combine day and AM/PM for filtered_df
+                        filtered_df['Draft Time'] = filtered_df['Day'] + ' ' + filtered_df['AM_PM']
+                        
+                        # Get distribution for filtered drafts only
+                        time_dist = filtered_df['Draft Time'].value_counts().sort_index()
+                        
+                        # Create pie chart
+                        fig_time = px.pie(
+                            values=time_dist.values,
+                            names=time_dist.index,
+                        )
+                        # Update title size and legend position
+                        fig_time.update_layout(
+                            title=dict(
+                                text="Time Distribution (UTC)",
+                                font=dict(size=24)
+                            ),
+                            legend=dict(
+                                orientation="h",
+                                yanchor="bottom",
+                                y=-0.5,
+                                xanchor="center",
+                                x=0.5
+                            )
+                        )
+                        st.plotly_chart(fig_time, use_container_width=True)
+                    except Exception as e:
+                        st.error(f"Error in time distribution: {str(e)}")
             
-            # Use filtered_df to analyze stacks
-            stack_analysis = (
-                filtered_df
-                .groupby('Draft Entry')
-                .apply(analyze_stacks)
-            )
-            
-            stack_counts = stack_analysis.value_counts()
-            stack_percentages = (stack_counts / len(stack_analysis) * 100).round(1)
-            
-            fig_stack = px.pie(
-                values=stack_percentages.values,
-                names=stack_percentages.index,
-                title="Stack Distribution"
-            )
-            fig_stack.update_layout(
-                title=dict(
-                    text="Stack Distribution",
-                    font=dict(size=24)
-                ),
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=-0.5,
-                    xanchor="center",
-                    x=0.5
+            with col_breakdown:
+                # Get all draft entries from filtered_df
+                filtered_draft_entries = filtered_df['Draft Entry'].unique()
+                
+                # Use filtered_df to analyze stacks
+                stack_analysis = (
+                    filtered_df
+                    .groupby('Draft Entry')
+                    .apply(analyze_stacks)
                 )
-            )
-            st.plotly_chart(fig_stack, use_container_width=True)
+                
+                stack_counts = stack_analysis.value_counts()
+                stack_percentages = (stack_counts / len(stack_analysis) * 100).round(1)
+                
+                fig_stack = px.pie(
+                    values=stack_percentages.values,
+                    names=stack_percentages.index,
+                    title="Stack Distribution"
+                )
+                fig_stack.update_layout(
+                    title=dict(
+                        text="Stack Distribution",
+                        font=dict(size=24)
+                    ),
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=-0.5,
+                        xanchor="center",
+                        x=0.5
+                    )
+                )
+                st.plotly_chart(fig_stack, use_container_width=True)
         
     except Exception as e:
         st.error(f"Error processing file: {str(e)}")
+
+# Create a footer with Buy Me a Coffee and Twitter icon
+col_footer = st.columns([1, 1])  # Create two columns
+
+with col_footer[1]:  # Right column
+
+    # The Twitter icon will still be displayed
+    st.markdown("""
+        <a href="https://x.com/loudogvideo" target="_blank">
+            <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="30">
+        </a>
+    """, unsafe_allow_html=True)
