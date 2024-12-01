@@ -352,16 +352,21 @@ if uploaded_file is not None:
                     "2 TE": drafts_with_2_te
                 }
                 
-                # Create a pie chart
-                fig = px.pie(
-                    names=distribution_summary.keys(),
-                    values=distribution_summary.values(),
-                    title="NFL Draft Position Distribution",
-                    color_discrete_sequence=px.colors.sequential.RdBu
-                )
+                # Filter out zero counts
+                filtered_distribution = {k: v for k, v in distribution_summary.items() if v > 0}
                 
-                # Display the pie chart
-                st.plotly_chart(fig)
+                # Create a pie chart only if there are values to display
+                if filtered_distribution:
+                    fig = px.pie(
+                        names=filtered_distribution.keys(),
+                        values=filtered_distribution.values(),
+                        title="NFL Draft Position Distribution",
+                        color_discrete_sequence=px.colors.sequential.RdBu
+                    )
+                    # Display the pie chart
+                    st.plotly_chart(fig)
+                else:
+                    st.write("No drafts meet the specified configurations.")
 
             else:
                 col_pos, col_time = st.columns(2)
