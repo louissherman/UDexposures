@@ -360,8 +360,18 @@ if uploaded_file is not None:
                     fig = px.pie(
                         names=filtered_distribution.keys(),
                         values=filtered_distribution.values(),
-                        title="NFL Draft Position Distribution",
+                        title="Player Position Distribution",
                         color_discrete_sequence=px.colors.sequential.RdBu
+                    )
+                    # Update layout to position the legend below the pie chart
+                    fig.update_layout(
+                        legend=dict(
+                            orientation="h",  # Horizontal orientation
+                            yanchor="bottom",  # Anchor the legend to the bottom
+                            y=-0.3,  # Position it below the chart
+                            xanchor="center",  # Center the legend
+                            x=0.5  # Center it horizontally
+                        )
                     )
                     # Display the pie chart
                     st.plotly_chart(fig)
@@ -485,14 +495,18 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"Error processing file: {str(e)}")
 
-# Create a footer with Buy Me a Coffee and Twitter icon
+# Create a footer Twitter icon
 col_footer = st.columns([1, 1])  # Create two columns
 
 with col_footer[1]:  # Right column
 
-    # The Twitter icon will still be displayed
-    st.markdown("""
-        <a href="https://x.com/loudogvideo" target="_blank">
-            <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="30">
-        </a>
+    # The Twitter icon will be displayed
+     st.markdown("""
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="https://x.com/loudogvideo" target="_blank">
+                <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="30">
+            </a>
+            <span>@loudogvideo</span>
+        </div>
     """, unsafe_allow_html=True)
+
