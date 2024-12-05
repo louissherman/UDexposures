@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import altair as alt  # Import Altair for bar charts
+import csv
+from pathlib import Path
 
 # Set page to wide mode at the very top of the file
 st.set_page_config(layout="wide")
@@ -31,12 +33,22 @@ NFL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
 NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
 NHL_POSITIONS = ['C', 'LW', 'RW', 'D', 'G']
 
-# Add this near the top of the file with other constants
-NFL_TEAM_LOGOS = {
-    'ARI': 'https://raw.githubusercontent.com/path/to/cardinals-logo.png',
-    'ATL': 'https://raw.githubusercontent.com/path/to/falcons-logo.png',
-    # ... add all NFL team logos
-}
+# Replace the local file loading code with this
+def load_team_logos():
+    logos_dict = {}
+    try:
+        # Read directly from GitHub raw URL
+        url = "https://raw.githubusercontent.com/louisssherman/UDexposures/main/UDexposures/nfl_logos.txt"
+        df = pd.read_csv(url)
+        logos_dict = dict(zip(df['team_code'], df['url']))
+        st.write(f"Loaded {len(logos_dict)} team logos")
+    except Exception as e:
+        st.warning(f"Could not load team logos: {str(e)}")
+        return {}
+    return logos_dict
+
+# Load the NFL team logos
+NFL_TEAM_LOGOS = load_team_logos()
 
 # File upload with tooltip
 st.markdown("""
@@ -363,14 +375,16 @@ if uploaded_file is not None:
                                     source=NFL_TEAM_LOGOS[team],
                                     xref="paper",
                                     yref="y",
-                                    x=-0.1,  # Position logos to the left of bars
+                                    x=-0.15,  # Adjusted position for better visibility
                                     y=idx,
-                                    sizex=0.1,
-                                    sizey=0.1,
+                                    sizex=0.12,  # Slightly larger size
+                                    sizey=0.12,
                                     xanchor="right",
                                     yanchor="middle"
                                 )
                             )
+                    # Adjust margin for logo space
+                    fig_team.update_layout(margin=dict(l=120))
                 
                 fig_team.update_layout(
                     title=dict(text="Team Distribution", font=dict(size=24)),
