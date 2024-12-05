@@ -38,7 +38,7 @@ def load_team_logos():
     logos_dict = {}
     try:
         # Read directly from GitHub raw URL
-        url = "https://raw.githubusercontent.com/louisssherman/UDexposures/main/UDexposures/nfl_logos.txt"
+        url = "https://github.com/louissherman/UDexposures/blob/main/nfl_logos.txt"
         df = pd.read_csv(url)
         logos_dict = dict(zip(df['team_code'], df['url']))
         st.write(f"Loaded {len(logos_dict)} team logos")
