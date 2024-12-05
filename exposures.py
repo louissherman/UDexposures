@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import altair as alt  # Import Altair for bar charts
 
 # Set page to wide mode at the very top of the file
 st.set_page_config(layout="wide")
@@ -29,6 +30,13 @@ with col_feedback:
 NFL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
 NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
 NHL_POSITIONS = ['C', 'LW', 'RW', 'D', 'G']
+
+# Add this near the top of the file with other constants
+NFL_TEAM_LOGOS = {
+    'ARI': 'https://raw.githubusercontent.com/path/to/cardinals-logo.png',
+    'ATL': 'https://raw.githubusercontent.com/path/to/falcons-logo.png',
+    # ... add all NFL team logos
+}
 
 # File upload with tooltip
 st.markdown("""
@@ -281,7 +289,7 @@ if uploaded_file is not None:
             st.metric("Average Draft Position (first pick)", avg_draft_position)
         
         # Create three columns for table and visualizations
-        col_table, col_comp, col_breakdown = st.columns([1, 1, 1], gap="small")
+        col_table, col_team, col_pos, col_stack = st.columns([2, 1, 1, 1], gap="small")
         
         with col_table:
             # Calculate exposures
@@ -325,172 +333,141 @@ if uploaded_file is not None:
                     'Total Entry Fees': st.column_config.NumberColumn(format="%.0f")
                 }
             )
-        with col_comp:
+
+        with col_team:
+            if sport in ["NFL", "NBA", "NHL"]:
+                # Create team distribution bar chart
+                team_dist = filtered_df['Team'].value_counts()
+                team_percentages = (team_dist / len(filtered_df) * 100).round(1)
+                team_percentages = team_percentages.sort_values(ascending=True)
+                
+                # Create a color sequence for the bars
+                colors = px.colors.qualitative.Set3[:len(team_percentages)]
+                
+                fig_team = px.bar(
+                    y=team_percentages.index,
+                    x=team_percentages.values,
+                    title="Team Distribution",
+                    labels={'x': 'Percentage (%)', 'y': 'Team'},
+                    orientation='h',
+                    color=team_percentages.index,  # Use team names for colors
+                    color_discrete_sequence=colors  # Use our custom color sequence
+                )
+                
+                # Add team logos as images
+                if sport == "NFL":
+                    for idx, team in enumerate(team_percentages.index):
+                        if team in NFL_TEAM_LOGOS:
+                            fig_team.add_layout_image(
+                                dict(
+                                    source=NFL_TEAM_LOGOS[team],
+                                    xref="paper",
+                                    yref="y",
+                                    x=-0.1,  # Position logos to the left of bars
+                                    y=idx,
+                                    sizex=0.1,
+                                    sizey=0.1,
+                                    xanchor="right",
+                                    yanchor="middle"
+                                )
+                            )
+                
+                fig_team.update_layout(
+                    title=dict(text="Team Distribution", font=dict(size=24)),
+                    showlegend=False,
+                    height=600,
+                    margin=dict(l=100)  # Add left margin for logos
+                )
+                st.plotly_chart(fig_team, use_container_width=True)
+
+        with col_pos:
             if sport == "NFL":
-                # Calculate draft compositions
+                # NFL Position distribution
                 draft_compositions = filtered_df.groupby('Draft Entry')['Position'].agg(lambda x: x.value_counts().to_dict()).reset_index()
                 
-                # Count drafts with specific configurations
                 position_counts = draft_compositions['Position'].apply(lambda x: {
                     'RB': x.get('RB', 0),
                     'WR': x.get('WR', 0),
                     'TE': x.get('TE', 0)
                 })
                 
-                # Create a DataFrame from the position counts
                 position_df = pd.DataFrame(position_counts.tolist())
                 
-                # Count drafts with the specified configurations
-                drafts_with_2_rb = (position_df['RB'] == 2).sum()
-                drafts_with_3_wr = (position_df['WR'] >= 3).sum()  # Check for at least 3 WRs
-                drafts_with_2_te = (position_df['TE'] == 2).sum()
-                
-                # Create a summary for the pie chart
                 distribution_summary = {
-                    "2 RB": drafts_with_2_rb,
-                    "3 WR": drafts_with_3_wr,
-                    "2 TE": drafts_with_2_te
+                    "2 RB": (position_df['RB'] == 2).sum(),
+                    "3 WR": (position_df['WR'] >= 3).sum(),
+                    "2 TE": (position_df['TE'] == 2).sum()
                 }
                 
-                # Filter out zero counts
-                filtered_distribution = {k: v for k, v in distribution_summary.items() if v > 0}
+                # Convert to pandas Series and sort
+                dist_series = pd.Series(distribution_summary)
+                dist_series = dist_series[dist_series > 0].sort_values(ascending=True)
                 
-                # Create a pie chart only if there are values to display
-                if filtered_distribution:
-                    fig = px.pie(
-                        names=filtered_distribution.keys(),
-                        values=filtered_distribution.values(),
-                        title="Player Position Distribution",
-                        color_discrete_sequence=px.colors.sequential.RdBu
-                    )
-                    # Update layout to position the legend below the pie chart
-                    fig.update_layout(
-                        legend=dict(
-                            orientation="h",  # Horizontal orientation
-                            yanchor="bottom",  # Anchor the legend to the bottom
-                            y=-0.3,  # Position it below the chart
-                            xanchor="center",  # Center the legend
-                            x=0.5  # Center it horizontally
-                        )
-                    )
-                    # Display the pie chart
-                    st.plotly_chart(fig)
-                else:
-                    st.write("No drafts meet the specified configurations.")
-
+                fig_pos = px.bar(
+                    y=dist_series.index,
+                    x=dist_series.values,
+                    title="Position Distribution",
+                    labels={'x': 'Number of Drafts', 'y': 'Build Type'},
+                    orientation='h',
+                    color=dist_series.index,
+                    color_discrete_sequence=px.colors.qualitative.Set3[:len(dist_series)]
+                )
+                fig_pos.update_layout(
+                    title=dict(text="Position Distribution", font=dict(size=24)),
+                    showlegend=False,
+                    height=400
+                )
+                st.plotly_chart(fig_pos, use_container_width=True)
             else:
-                col_pos, col_time = st.columns(2)
-                
-                with col_pos:
-                    if selected_position == "All":
-                        team_comps = filtered_df.groupby('Position').size()
-                        position_percentages = (team_comps / len(filtered_df) * 100).round(1)
-                        
-                        fig_comp = px.pie(
-                            values=position_percentages.values,
-                            names=position_percentages.index,
-                            title="Position Distribution"
-                        )
-                    else:
-                        team_comps = filtered_df.groupby('Team').size()
-                        team_percentages = (team_comps / len(filtered_df) * 100).round(1)
-                        
-                        fig_comp = px.pie(
-                            values=team_percentages.values,
-                            names=team_percentages.index,
-                            title=f"{selected_position} Team Distribution"
-                        )
+                # NBA/NHL Position distribution
+                if selected_position == "All":
+                    pos_dist = filtered_df['Position'].value_counts()
+                    pos_percentages = (pos_dist / len(filtered_df) * 100).round(1)
+                    pos_percentages = pos_percentages.sort_values(ascending=True)
                     
-                    fig_comp.update_layout(
-                        title=dict(
-                            text="Position Distribution" if selected_position == "All" else f"{selected_position} Team Distribution",
-                            font=dict(size=24)
-                        ),
-                        legend=dict(
-                            orientation="h",
-                            yanchor="bottom",
-                            y=-0.5,
-                            xanchor="center",
-                            x=0.5
-                        )
+                    fig_pos = px.bar(
+                        y=pos_percentages.index,
+                        x=pos_percentages.values,
+                        title="Position Distribution",
+                        labels={'x': 'Percentage (%)', 'y': 'Position'},
+                        orientation='h',
+                        color=pos_percentages.index,
+                        color_discrete_sequence=px.colors.qualitative.Set3[:len(pos_percentages)]
                     )
-                    st.plotly_chart(fig_comp, use_container_width=True)
-                
-                with col_time:
-                    try:
-                        # Convert to datetime and set to Eastern Time
-                        filtered_df['Picked At'] = pd.to_datetime(filtered_df['Picked At'], utc=True)
-                        filtered_df['Picked At'] = filtered_df['Picked At'].dt.tz_convert('US/Eastern')
-                        
-                        # Extract day and hour information
-                        filtered_df['Day'] = filtered_df['Picked At'].dt.day_name()
-                        filtered_df['Hour'] = filtered_df['Picked At'].dt.hour
-                        
-                        # Define AM/PM
-                        filtered_df['AM_PM'] = filtered_df['Hour'].apply(lambda x: 'AM' if x < 12 else 'PM')
-                        
-                        # Combine day and AM/PM for filtered_df
-                        filtered_df['Draft Time'] = filtered_df['Day'] + ' ' + filtered_df['AM_PM']
-                        
-                        # Get distribution for filtered drafts only
-                        time_dist = filtered_df['Draft Time'].value_counts().sort_index()
-                        
-                        # Create pie chart
-                        fig_time = px.pie(
-                            values=time_dist.values,
-                            names=time_dist.index,
-                        )
-                        # Update title size and legend position
-                        fig_time.update_layout(
-                            title=dict(
-                                text="Time Distribution (UTC)",
-                                font=dict(size=24)
-                            ),
-                            legend=dict(
-                                orientation="h",
-                                yanchor="bottom",
-                                y=-0.5,
-                                xanchor="center",
-                                x=0.5
-                            )
-                        )
-                        st.plotly_chart(fig_time, use_container_width=True)
-                    except Exception as e:
-                        st.error(f"Error in time distribution: {str(e)}")
+                    fig_pos.update_layout(
+                        title=dict(text="Position Distribution", font=dict(size=24)),
+                        showlegend=False,
+                        height=400
+                    )
+                    st.plotly_chart(fig_pos, use_container_width=True)
+
+        with col_stack:
+            # Stack distribution
+            stack_analysis = (
+                filtered_df
+                .groupby('Draft Entry')
+                .apply(analyze_stacks)
+            )
             
-            with col_breakdown:
-                # Get all draft entries from filtered_df
-                filtered_draft_entries = filtered_df['Draft Entry'].unique()
-                
-                # Use filtered_df to analyze stacks
-                stack_analysis = (
-                    filtered_df
-                    .groupby('Draft Entry')
-                    .apply(analyze_stacks)
-                )
-                
-                stack_counts = stack_analysis.value_counts()
-                stack_percentages = (stack_counts / len(stack_analysis) * 100).round(1)
-                
-                fig_stack = px.pie(
-                    values=stack_percentages.values,
-                    names=stack_percentages.index,
-                    title="Stack Distribution"
-                )
-                fig_stack.update_layout(
-                    title=dict(
-                        text="Stack Distribution",
-                        font=dict(size=24)
-                    ),
-                    legend=dict(
-                        orientation="h",
-                        yanchor="bottom",
-                        y=-0.5,
-                        xanchor="center",
-                        x=0.5
-                    )
-                )
-                st.plotly_chart(fig_stack, use_container_width=True)
+            stack_counts = stack_analysis.value_counts()
+            stack_percentages = (stack_counts / len(stack_analysis) * 100).round(1)
+            stack_percentages = stack_percentages.sort_values(ascending=True)
+            
+            fig_stack = px.bar(
+                y=stack_percentages.index,
+                x=stack_percentages.values,
+                title="Stack Distribution",
+                labels={'x': 'Percentage (%)', 'y': 'Stack Type'},
+                orientation='h',
+                color=stack_percentages.index,
+                color_discrete_sequence=px.colors.qualitative.Set3[:len(stack_percentages)]
+            )
+            fig_stack.update_layout(
+                title=dict(text="Stack Distribution", font=dict(size=24)),
+                showlegend=False,
+                height=400
+            )
+            st.plotly_chart(fig_stack, use_container_width=True)
         
     except Exception as e:
         st.error(f"Error processing file: {str(e)}")
