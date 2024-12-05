@@ -4,8 +4,6 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import altair as alt  # Import Altair for bar charts
-import csv
-from pathlib import Path
 
 # Set page to wide mode at the very top of the file
 st.set_page_config(layout="wide")
@@ -23,7 +21,7 @@ with col_title:
         """, unsafe_allow_html=True)
 with col_feedback:
     st.markdown("""
-        <a href="https://github.com/louisssherman/UDexposures/issues/new/choose" target="_blank">
+        <a href="https://github.com/louissherman/UDexposures/issues/new/choose" target="_blank">
             Submit Feedback
         </a>
     """, unsafe_allow_html=True)
@@ -33,23 +31,6 @@ NFL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
 NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
 NHL_POSITIONS = ['C', 'LW', 'RW', 'D', 'G']
 
-# Replace the local file loading code with this
-def load_team_logos():
-    logos_dict = {}
-    try:
-        # Read directly from GitHub raw URL
-        url = "https://github.com/louissherman/UDexposures/blob/main/nfl_logos.txt"
-        df = pd.read_csv(url)
-        logos_dict = dict(zip(df['team_code'], df['url']))
-        st.write(f"Loaded {len(logos_dict)} team logos")
-    except Exception as e:
-        st.warning(f"Could not load team logos: {str(e)}")
-        return {}
-    return logos_dict
-
-# Load the NFL team logos
-NFL_TEAM_LOGOS = load_team_logos()
-
 # File upload with tooltip
 st.markdown("""
     Upload CSV 
@@ -58,7 +39,6 @@ st.markdown("""
     unsafe_allow_html=True
 )
 uploaded_file = st.file_uploader("", type=['csv'])
-
 if uploaded_file is not None:
     try:
         # Read the CSV file
@@ -366,39 +346,20 @@ if uploaded_file is not None:
                     color_discrete_sequence=colors  # Use our custom color sequence
                 )
                 
-                # Add team logos as images
-                if sport == "NFL":
-                    for idx, team in enumerate(team_percentages.index):
-                        if team in NFL_TEAM_LOGOS:
-                            fig_team.add_layout_image(
-                                dict(
-                                    source=NFL_TEAM_LOGOS[team],
-                                    xref="paper",
-                                    yref="y",
-                                    x=-0.15,  # Adjusted position for better visibility
-                                    y=idx,
-                                    sizex=0.12,  # Slightly larger size
-                                    sizey=0.12,
-                                    xanchor="right",
-                                    yanchor="middle"
-                                )
-                            )
-                    # Adjust margin for logo space
-                    fig_team.update_layout(margin=dict(l=120))
-                
+                # Adjust layout without logo space
                 fig_team.update_layout(
                     title=dict(text="Team Distribution", font=dict(size=24)),
                     showlegend=False,
                     height=600,
-                    margin=dict(l=100)  # Add left margin for logos
+                    margin=dict(l=100)  # Adjust margin as needed
                 )
+                
                 st.plotly_chart(fig_team, use_container_width=True)
-
+                
         with col_pos:
             if sport == "NFL":
                 # NFL Position distribution
                 draft_compositions = filtered_df.groupby('Draft Entry')['Position'].agg(lambda x: x.value_counts().to_dict()).reset_index()
-                
                 position_counts = draft_compositions['Position'].apply(lambda x: {
                     'RB': x.get('RB', 0),
                     'WR': x.get('WR', 0),
@@ -412,7 +373,6 @@ if uploaded_file is not None:
                     "3 WR": (position_df['WR'] >= 3).sum(),
                     "2 TE": (position_df['TE'] == 2).sum()
                 }
-                
                 # Convert to pandas Series and sort
                 dist_series = pd.Series(distribution_summary)
                 dist_series = dist_series[dist_series > 0].sort_values(ascending=True)
@@ -432,6 +392,7 @@ if uploaded_file is not None:
                     height=400
                 )
                 st.plotly_chart(fig_pos, use_container_width=True)
+            
             else:
                 # NBA/NHL Position distribution
                 if selected_position == "All":
@@ -482,7 +443,7 @@ if uploaded_file is not None:
                 height=400
             )
             st.plotly_chart(fig_stack, use_container_width=True)
-        
+            
     except Exception as e:
         st.error(f"Error processing file: {str(e)}")
 
@@ -490,9 +451,8 @@ if uploaded_file is not None:
 col_footer = st.columns([1, 1])  # Create two columns
 
 with col_footer[1]:  # Right column
-
     # The Twitter icon will be displayed
-     st.markdown("""
+    st.markdown("""
         <div style="display: flex; align-items: center; gap: 10px;">
             <a href="https://x.com/loudogvideo" target="_blank">
                 <img src="https://www.iconpacks.net/icons/free-icons-6/free-icon-twitter-logo-blue-square-rounded-20855.png" width="30">
