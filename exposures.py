@@ -32,13 +32,7 @@ NFL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
 NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
 NHL_POSITIONS = ['C', 'LW', 'RW', 'D', 'G']
 
-# File upload with tooltip
-st.markdown("""
-    Upload CSV 
-    <span title="You can email an exposure csv to yourself from the Completed Drafts page on Underdog">❔</span>
-    """, 
-    unsafe_allow_html=True
-)
+
 uploaded_file = st.file_uploader("", type=['csv'])
 if uploaded_file is not None:
     try:
