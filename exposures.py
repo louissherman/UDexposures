@@ -330,14 +330,20 @@ if uploaded_file is not None:
         with col_team:
             if sport in ["NFL", "NBA", "NHL"]:
                 
+                # Load team logos and colors from GitHub
+                team_logos_url = 'https://raw.githubusercontent.com/louissherman/UDexposures/main/nfl_logos.csv'
+                team_logos_df = pd.read_csv(team_logos_url)  # Load the logos CSV directly from GitHub
 
+                # Create a dictionary mapping team names to colors (you can customize the colors)
+                team_colors = dict(zip(team_logos_df['Team'], team_logos_df['Color']))  # Assuming 'Color' column exists
+                
                 # Create team distribution bar chart
                 team_dist = filtered_df['Team'].value_counts()
                 team_percentages = (team_dist / len(filtered_df) * 100).round(1)
                 team_percentages = team_percentages.sort_values(ascending=True)
                 
-                # Create a color sequence for the bars
-                colors = px.colors.qualitative.Set3[:len(team_percentages)]
+                # Create a color sequence for the bars based on the team colors
+                colors = [team_colors.get(team, '#000000') for team in team_percentages.index]  # Default to black if not found
                 
                 fig_team = px.bar(
                     y=team_percentages.index,
