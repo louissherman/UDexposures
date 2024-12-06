@@ -26,6 +26,7 @@ with col_feedback:
         </a>
     """, unsafe_allow_html=True)
 
+
 # Define sport-specific configurations
 NFL_POSITIONS = ['QB', 'RB', 'WR', 'TE']
 NBA_POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C']
@@ -328,6 +329,8 @@ if uploaded_file is not None:
 
         with col_team:
             if sport in ["NFL", "NBA", "NHL"]:
+                
+
                 # Create team distribution bar chart
                 team_dist = filtered_df['Team'].value_counts()
                 team_percentages = (team_dist / len(filtered_df) * 100).round(1)
@@ -460,4 +463,3 @@ with col_footer[1]:  # Right column
             <span>@loudogvideo</span>
         </div>
     """, unsafe_allow_html=True)
-
