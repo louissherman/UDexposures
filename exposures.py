@@ -331,11 +331,19 @@ if uploaded_file is not None:
             if sport in ["NFL", "NBA", "NHL"]:
                 
                 # Load team logos and colors from GitHub
-                team_logos_url = 'https://raw.githubusercontent.com/louissherman/UDexposures/main/nfl_logos.csv'
-                team_logos_df = pd.read_csv(team_logos_url)  # Load the logos CSV directly from GitHub
+                nfl_logos_url = 'https://raw.githubusercontent.com/louissherman/UDexposures/main/nfl_logos.csv'
+                nba_logos_url = 'https://raw.githubusercontent.com/louissherman/UDexposures/main/nba_logos.csv'
+                nhl_logos_url = 'https://raw.githubusercontent.com/louissherman/UDexposures/main/nhl_logos.csv'
 
-                # Create a dictionary mapping team names to colors (you can customize the colors)
-                team_colors = dict(zip(team_logos_df['Team'], team_logos_df['Color']))  # Assuming 'Color' column exists
+                # Load the logos CSVs directly from GitHub
+                nfl_logos_df = pd.read_csv(nfl_logos_url)
+                nba_logos_df = pd.read_csv(nba_logos_url)
+                nhl_logos_df = pd.read_csv(nhl_logos_url)
+
+                # Create dictionaries mapping team names to colors
+                nfl_colors = dict(zip(nfl_logos_df['Team'], nfl_logos_df['Color']))  # Assuming 'Color' column exists
+                nba_colors = dict(zip(nba_logos_df['Team'], nba_logos_df['Color']))  # Assuming 'Color' column exists
+                nhl_colors = dict(zip(nhl_logos_df['Team'], nhl_logos_df['Color']))  # Assuming 'Color' column exists
                 
                 # Create team distribution bar chart
                 team_dist = filtered_df['Team'].value_counts()
@@ -343,28 +351,73 @@ if uploaded_file is not None:
                 team_percentages = team_percentages.sort_values(ascending=True)
                 
                 # Create a color sequence for the bars based on the team colors
-                colors = [team_colors.get(team, '#000000') for team in team_percentages.index]  # Default to black if not found
+                nfl_colors_dist = [nfl_colors.get(team, '#FFFFFF') for team in team_percentages.index]  # Default to white if not found
+                nba_colors_dist = [nba_colors.get(team, '#FFFFFF') for team in team_percentages.index]  
+                nhl_colors_dist = [nhl_colors.get(team, '#FFFFFF') for team in team_percentages.index]  
+
+                if sport == "NFL":
+                    fig_team = px.bar(
+                        y=team_percentages.index,
+                        x=team_percentages.values,
+                        title="NFL Team Distribution",
+                        labels={'x': 'Percentage (%)', 'y': 'Team'},
+                        orientation='h',
+                        color=team_percentages.index,  # Use team names for colors
+                        color_discrete_sequence=nfl_colors_dist  # Use our custom color sequence
+                    )
+                    
+                    # Adjust layout without logo space
+                    fig_team.update_layout(
+                        title=dict(text="NFL Team Distribution", font=dict(size=24)),
+                        showlegend=False,
+                        height=600,
+                        margin=dict(l=100)  # Adjust margin as needed
+                    )
+                    
+                    st.plotly_chart(fig_team, use_container_width=True)
                 
-                fig_team = px.bar(
-                    y=team_percentages.index,
-                    x=team_percentages.values,
-                    title="Team Distribution",
-                    labels={'x': 'Percentage (%)', 'y': 'Team'},
-                    orientation='h',
-                    color=team_percentages.index,  # Use team names for colors
-                    color_discrete_sequence=colors  # Use our custom color sequence
-                )
+                elif sport == "NBA":
+                    fig_team = px.bar(
+                        y=team_percentages.index,
+                        x=team_percentages.values,
+                        title="NBA Team Distribution",
+                        labels={'x': 'Percentage (%)', 'y': 'Team'},
+                        orientation='h',
+                        color=team_percentages.index,  # Use team names for colors
+                        color_discrete_sequence=nba_colors_dist  # Use our custom color sequence
+                    )
+                    
+                    # Adjust layout without logo space
+                    fig_team.update_layout(
+                        title=dict(text="NBA Team Distribution", font=dict(size=24)),
+                        showlegend=False,
+                        height=600,
+                        margin=dict(l=100)  # Adjust margin as needed
+                    )
+                    
+                    st.plotly_chart(fig_team, use_container_width=True)
                 
-                # Adjust layout without logo space
-                fig_team.update_layout(
-                    title=dict(text="Team Distribution", font=dict(size=24)),
-                    showlegend=False,
-                    height=600,
-                    margin=dict(l=100)  # Adjust margin as needed
-                )
-                
-                st.plotly_chart(fig_team, use_container_width=True)
-                
+                elif sport == "NHL":
+                    fig_team = px.bar(
+                        y=team_percentages.index,
+                        x=team_percentages.values,
+                        title="NHL Team Distribution",
+                        labels={'x': 'Percentage (%)', 'y': 'Team'},
+                        orientation='h',
+                        color=team_percentages.index,  # Use team names for colors
+                        color_discrete_sequence=nhl_colors_dist  # Use our custom color sequence
+                    )
+                    
+                    # Adjust layout without logo space
+                    fig_team.update_layout(
+                        title=dict(text="NHL Team Distribution", font=dict(size=24)),
+                        showlegend=False,
+                        height=600,
+                        margin=dict(l=100)  # Adjust margin as needed
+                    )
+                    
+                    st.plotly_chart(fig_team, use_container_width=True)
+        
         with col_pos:
             if sport == "NFL":
                 # NFL Position distribution

@@ -1,6 +1,5 @@
 name,Team,Color
 Anaheim Ducks,ANA,#a2aaad
-Arizona Coyotes,ARI,#862633
 Boston Bruins,BOS,#ffb81c
 Buffalo Sabres,BUF,#003087
 Calgary Flames,CGY,#f1be48
@@ -11,7 +10,7 @@ Columbus Blue Jackets,CBJ,#041e42
 Dallas Stars,DAL,#006341
 Detroit Red Wings,DET,#c8102e
 Edmonton Oilers,EDM,#00205b
-Florida Panthers,FLA,#041e42
+Florida Panthers,FLA,#C8102E
 Los Angeles Kings,LAK,#a2aaad
 Minnesota Wild,MIN,#154734
 Montreal Canadiens,MON,#001e62
@@ -30,3 +29,5 @@ Vancouver Canucks,VAN,#97999b
 Vegas Golden Knights,VGK,#b4975a
 Washington Capitals,WAS,#041e42
 Winnipeg Jets,WIN,#c8102e
+Utah Hockey Club,UTA,#090909
+Seattle Kraken,SEA,#001628
