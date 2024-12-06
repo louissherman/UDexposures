@@ -1,31 +1,31 @@
-team_full,Team,URL
-"Atlanta Hawks","ATL","http://content.sportslogos.net/logos/6/220/full/5mdhgjh3aa92kih09pgi.gif"
-"Boston Celtics","BOS","http://content.sportslogos.net/logos/6/220/full/5mdhgjh3aa92kih09pgi.gif"
-"Brooklyn Nets","BKN","http://content.sportslogos.net/logos/6/3786/full/137_brooklyn-nets-primary-2013.gif"
-"Charlotte Hornets","CHA","http://content.sportslogos.net/logos/6/5120/full/1926_charlotte__hornets_-primary-2015.png"
-"Chicago Bulls","CHI","http://content.sportslogos.net/logos/6/221/full/hj3gmh82w9hffmeh3fjm5h874.gif"
-"Cleveland Cavaliers","CLE","http://content.sportslogos.net/logos/6/222/full/e4701g88mmn7ehz2baynbs6e0.gif"
-"Dallas Mavericks","DAL","http://content.sportslogos.net/logos/6/228/full/ifk08eam05rwxr3yhol3whdcm.gif"
-"Denver Nuggets","DEN","http://content.sportslogos.net/logos/6/229/full/xeti0fjbyzmcffue57vz5o1gl.gif"
-"Detroit Pistons","DET","http://content.sportslogos.net/logos/6/223/full/3079.gif"
-"Golden State Warriors","GSW","http://content.sportslogos.net/logos/6/235/full/qhhir6fj8zp30f33s7sfb4yw0.png"
-"Houston Rockets","HOU","http://content.sportslogos.net/logos/6/230/full/8xe4813lzybfhfl14axgzzqeq.gif"
-"Indiana Pacers","IND","http://content.sportslogos.net/logos/6/224/full/3083.gif"
-"Los Angeles Clippers","LAC","http://content.sportslogos.net/logos/6/236/full/bvv028jd1hhr8ee8ii7a0fg4i.gif"
-"Los Angeles Lakers","LAL","http://content.sportslogos.net/logos/6/237/full/uig7aiht8jnpl1szbi57zzlsh.gif"
-"Memphis Grizzlies","MEM","http://content.sportslogos.net/logos/6/231/full/793.gif"
-"Miami Heat","MIA","http://content.sportslogos.net/logos/6/214/full/burm5gh2wvjti3xhei5h16k8e.gif"
-"Milwaukee Bucks","MIL","http://content.sportslogos.net/logos/6/225/full/0295onf2c4xsbfsxye6i.gif"
-"Minnesota Timberwolves","MIN","http://content.sportslogos.net/logos/6/232/full/zq8qkfni1g087f4245egc32po.gif"
-"New Orleans Pelicans","NOP","http://content.sportslogos.net/logos/6/4962/full/2681_new_orleans_pelicans-primary-2014.png"
-"New York Knicks","NYK","http://content.sportslogos.net/logos/6/216/full/2nn48xofg0hms8k326cqdmuis.gif"
-"Oklahoma City Thunder","OKC","http://content.sportslogos.net/logos/6/2687/full/khmovcnezy06c3nm05ccn0oj2.gif"
-"Orlando Magic","ORL","http://content.sportslogos.net/logos/6/217/full/wd9ic7qafgfb0yxs7tem7n5g4.gif"
-"Philadelphia 76ers","PHI","http://content.sportslogos.net/logos/6/249/full/5509.gif"
-"Phoenix Suns","PHX","http://content.sportslogos.net/logos/6/238/full/4370_phoenix_suns-primary-2014.png"
-"Portland Trail Blazers","POR","http://content.sportslogos.net/logos/6/239/full/bahmh46cyy6eod2jez4g21buk.gif"
-"Sacramento Kings","SAC","http://content.sportslogos.net/logos/6/240/full/832.gif"
-"San Antonio Spurs","SAS","http://content.sportslogos.net/logos/6/233/full/827.gif"
-"Toronto Raptors","TOR","http://content.sportslogos.net/logos/6/227/full/yfypcwqog6qx8658sn5w65huh.gif"
-"Utah Jazz","UTA","http://content.sportslogos.net/logos/6/234/full/m2leygieeoy40t46n1qqv0550.gif"
-"Washington Wizards","WAS","http://content.sportslogos.net/logos/6/219/full/b3619brnphtx65s2th4p9eggf.gif"
+team_full,Team,Color,secondary,URL
+Atlanta Hawks,ATL,#e13a3e,#c4d600,http://content.sportslogos.net/logos/6/220/full/5mdhgjh3aa92kih09pgi.gif
+Boston Celtics,BOS,#008348,#bb9753,http://content.sportslogos.net/logos/6/220/full/5mdhgjh3aa92kih09pgi.gif
+Brooklyn Nets,BKN,#061922,NA,http://content.sportslogos.net/logos/6/3786/full/137_brooklyn-nets-primary-2013.gif
+Charlotte Hornets,CHA,#1d1160,#008ca8,http://content.sportslogos.net/logos/6/5120/full/1926_charlotte__hornets_-primary-2015.png
+Chicago Bulls,CHI,#ce1141,#061922,http://content.sportslogos.net/logos/6/221/full/hj3gmh82w9hffmeh3fjm5h874.gif
+Cleveland Cavaliers,CLE,#860038,#fdbb30,http://content.sportslogos.net/logos/6/222/full/e4701g88mmn7ehz2baynbs6e0.gif
+Dallas Mavericks,DAL,#007dc5,#c4ced3,http://content.sportslogos.net/logos/6/228/full/ifk08eam05rwxr3yhol3whdcm.gif
+Denver Nuggets,DEN,#4d90cd,#fdb927,http://content.sportslogos.net/logos/6/229/full/xeti0fjbyzmcffue57vz5o1gl.gif
+Detroit Pistons,DET,#ed174c,#006bb6,http://content.sportslogos.net/logos/6/223/full/3079.gif
+Golden State Warriors,GSW,#fdb927,#006bb6,http://content.sportslogos.net/logos/6/235/full/qhhir6fj8zp30f33s7sfb4yw0.png
+Houston Rockets,HOU,#ce1141,#c4ced3,http://content.sportslogos.net/logos/6/230/full/8xe4813lzybfhfl14axgzzqeq.gif
+Indiana Pacers,IND,#ffc633,#00275d,http://content.sportslogos.net/logos/6/224/full/3083.gif
+Los Angeles Clippers,LAC,#ed174c,#006bb6,http://content.sportslogos.net/logos/6/236/full/bvv028jd1hhr8ee8ii7a0fg4i.gif
+Los Angeles Lakers,LAL,#fdb927,#552582,http://content.sportslogos.net/logos/6/237/full/uig7aiht8jnpl1szbi57zzlsh.gif
+Memphis Grizzlies,MEM,#0f586c,#7399c6,http://content.sportslogos.net/logos/6/231/full/793.gif
+Miami Heat,MIA,#98002e,#f9a01b,http://content.sportslogos.net/logos/6/214/full/burm5gh2wvjti3xhei5h16k8e.gif
+Milwaukee Bucks,MIL,#00471b,#f0ebd2,http://content.sportslogos.net/logos/6/225/full/0295onf2c4xsbfsxye6i.gif
+Minnesota Timberwolves,MIN,#005083,#00a94f,http://content.sportslogos.net/logos/6/232/full/zq8qkfni1g087f4245egc32po.gif
+New Orleans Pelicans,NOP,#002b5c,#e31837,http://content.sportslogos.net/logos/6/4962/full/2681_new_orleans_pelicans-primary-2014.png
+New York Knicks,NYK,#006bb6,#f58426,http://content.sportslogos.net/logos/6/216/full/2nn48xofg0hms8k326cqdmuis.gif
+Oklahoma City Thunder,OKC,#007dc3,#f05133,http://content.sportslogos.net/logos/6/2687/full/khmovcnezy06c3nm05ccn0oj2.gif
+Orlando Magic,ORL,#007dc5,#c4ced3,http://content.sportslogos.net/logos/6/217/full/wd9ic7qafgfb0yxs7tem7n5g4.gif
+Philadelphia 76ers,PHI,#ed174c,#006bb6,http://content.sportslogos.net/logos/6/249/full/5509.gif
+Phoenix Suns,PHX,#e56020,#1d1160,http://content.sportslogos.net/logos/6/238/full/4370_phoenix_suns-primary-2014.png
+Portland Trail Blazers,POR,#e03a3e,#bac3c9,http://content.sportslogos.net/logos/6/239/full/bahmh46cyy6eod2jez4g21buk.gif
+Sacramento Kings,SAC,#724c9f,#8e9090,http://content.sportslogos.net/logos/6/240/full/832.gif
+San Antonio Spurs,SAS,#bac3c9,#061922,http://content.sportslogos.net/logos/6/233/full/827.gif
+Toronto Raptors,TOR,#ce1141,#061922,http://content.sportslogos.net/logos/6/227/full/yfypcwqog6qx8658sn5w65huh.gif
+Utah Jazz,UTA,#002b5c,#f9a01b,http://content.sportslogos.net/logos/6/234/full/m2leygieeoy40t46n1qqv0550.gif
+Washington Wizards,WAS,#002b5c,#e31837,http://content.sportslogos.net/logos/6/219/full/b3619brnphtx65s2th4p9eggf.gif
